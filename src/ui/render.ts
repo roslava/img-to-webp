@@ -2,7 +2,7 @@ import type { ConvertedImage, Settings, SourceImage } from '../types';
 
 export function template(): string {
   return `<main class="shell"><header><p class="eyebrow">PRIVATE IMAGE TOOL</p><h1>Image <span>→</span> WebP</h1><p class="intro">Convert images locally in your browser. Files are never uploaded.</p></header>
-  <section class="dropzone" id="dropzone"><input id="file-input" type="file" accept="image/jpeg,image/png" multiple><div class="drop-icon">↓</div><h2>Drop JPG or PNG images here</h2><p>or <button class="link-button" id="choose-files" type="button">browse files</button> from your device</p><small>Multiple files supported · up to your browser's memory</small></section>
+  <section class="dropzone" id="dropzone"><input id="file-input" type="file" accept="image/jpeg,image/png" multiple><input id="folder-input" type="file" accept="image/jpeg,image/png" multiple webkitdirectory><div class="drop-icon">↓</div><h2>Drop JPG or PNG images here</h2><div class="upload-actions"><button class="link-button" id="choose-files" type="button">Add images</button><button class="link-button" id="choose-folder" type="button">Add folder</button></div><small>Multiple files supported · up to your browser's memory</small></section>
   <p id="notice" class="notice" aria-live="polite"></p>
   <section class="settings panel"><div class="section-heading"><div><p class="eyebrow">OUTPUT SETTINGS</p><h2>Fine-tune your conversion</h2></div></div>
   <div class="settings-grid"><label class="quality">Quality <output id="quality-value">85</output><input id="quality" type="range" min="1" max="100" value="85"></label>
@@ -21,7 +21,7 @@ const escapeHtml = (value: string): string => value.replace(/[&<>'"]/g, char => 
 export function renderFiles(container: HTMLElement, images: SourceImage[], processing: boolean): void {
   if (!images.length) { container.className = 'files empty-state'; container.innerHTML = '<p>Your image queue will appear here.</p>'; return; }
   container.className = 'files';
-  container.innerHTML = images.map(image => `<article class="file-card"><img src="${image.previewUrl}" alt=""><div class="file-info"><strong title="${escapeHtml(image.file.name)}">${escapeHtml(image.file.name)}</strong><span>${image.width} × ${image.height} · ${bytes(image.file.size)}</span></div><button class="remove" data-remove="${image.id}" ${processing ? 'disabled' : ''} aria-label="Remove ${escapeHtml(image.file.name)}">×</button></article>`).join('');
+  container.innerHTML = images.map(image => `<article class="file-card"><img src="${image.previewUrl}" alt=""><div class="file-info"><strong title="${escapeHtml(image.relativePath)}">${escapeHtml(image.relativePath)}</strong><span>${image.width} × ${image.height} · ${bytes(image.file.size)}</span></div><button class="remove" data-remove="${image.id}" ${processing ? 'disabled' : ''} aria-label="Remove ${escapeHtml(image.file.name)}">×</button></article>`).join('');
 }
 
 export function renderResults(container: HTMLElement, images: ConvertedImage[], sourceImages: SourceImage[]): void {

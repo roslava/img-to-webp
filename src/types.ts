@@ -4,6 +4,7 @@ export interface SourceImage {
   id: string;
   file: File;
   previewUrl: string;
+  relativePath: string;
   width: number;
   height: number;
 }
@@ -11,6 +12,7 @@ export interface SourceImage {
 export interface ConvertedImage {
   sourceId: string;
   name: string;
+  relativePath: string;
   blob: Blob;
   width: number;
   height: number;

@@ -1,6 +1,6 @@
 # Image → WebP
 
-A small, browser-only image converter for JPG, JPEG and PNG files. Drop one or more images, choose quality and dimensions, then download individual WebP files or a ZIP archive.
+A small, browser-only image converter for JPG, JPEG and PNG files. Drop one or more images or add a folder, choose quality and dimensions, then download individual WebP files or a ZIP archive.
 
 ## Privacy
 
@@ -10,6 +10,32 @@ Images are processed locally in your browser and are never uploaded. The app has
 
 - Node.js 18+ and npm
 - A modern browser with Canvas/WebP support
+
+Regular image uploads work in modern browsers. Folder selection uses a directory file input (`webkitdirectory`), with the best support in Chromium-based browsers. If a browser does not support folder selection, ordinary image upload continues to work.
+
+## Folder ZIP exports
+
+Adding a folder preserves its nested structure in the ZIP while changing each supported image to WebP. The selected root folder itself is omitted from the ZIP entries.
+
+```text
+Input folder:
+
+hero.jpg
+thumbnail.jpg
+gallery/
+  01.jpg
+  02.jpg
+
+Output ZIP:
+
+hero.webp
+thumbnail.webp
+gallery/
+  01.webp
+  02.webp
+```
+
+Only JPG, JPEG, and PNG files are included. Folder structure is preserved only in the ZIP; downloading one result uses the normal browser download and saves just that file's name.
 
 ## Run locally
 
