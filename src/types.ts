@@ -13,6 +13,7 @@ export interface ConvertedImage {
   sourceId: string;
   name: string;
   relativePath: string;
+  outputPath: string;
   blob: Blob;
   width: number;
   height: number;

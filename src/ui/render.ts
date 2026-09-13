@@ -25,7 +25,7 @@ export function renderFiles(container: HTMLElement, images: SourceImage[], proce
 }
 
 export function renderResults(container: HTMLElement, images: ConvertedImage[], sourceImages: SourceImage[]): void {
-  container.innerHTML = images.map(image => { const source = sourceImages.find(item => item.id === image.sourceId); const change = source ? Math.round((1 - image.blob.size / source.file.size) * 100) : 0; return `<article class="result-card"><div class="result-icon">WEBP</div><div class="file-info"><strong>${escapeHtml(image.name)}</strong><span>${image.width} × ${image.height} · ${bytes(image.blob.size)} <em class="${change >= 0 ? 'saving' : 'larger'}">${change >= 0 ? '−' : '+'}${Math.abs(change)}%</em></span></div><button class="download" data-download="${image.sourceId}">Download</button></article>`; }).join('');
+  container.innerHTML = images.map(image => { const source = sourceImages.find(item => item.id === image.sourceId); const change = source ? Math.round((1 - image.blob.size / source.file.size) * 100) : 0; return `<article class="result-card"><div class="result-icon">WEBP</div><div class="file-info"><strong title="${escapeHtml(image.outputPath)}">${escapeHtml(image.outputPath)}</strong><span>${image.width} × ${image.height} · ${bytes(image.blob.size)} <em class="${change >= 0 ? 'saving' : 'larger'}">${change >= 0 ? '−' : '+'}${Math.abs(change)}%</em></span></div><button class="download" data-download="${image.sourceId}">Download</button></article>`; }).join('');
 }
 
 export function readSettings(): Settings {

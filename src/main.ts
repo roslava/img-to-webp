@@ -2,7 +2,7 @@ import './styles.css';
 import { convertToWebp } from './image/convert';
 import { downloadBlob } from './download/download';
 import { downloadZip } from './download/zip';
-import { normalizeRelativePath } from './download/paths';
+import { normalizeRelativePath, uniqueWebpPaths } from './download/paths';
 import type { ConvertedImage, SourceImage } from './types';
 import { readSettings, renderFiles, renderResults, template } from './ui/render';
 
@@ -58,7 +58,7 @@ dropzone.addEventListener('drop', event => { if (event.dataTransfer?.files) void
 $<HTMLInputElement>('#quality').addEventListener('input', event => { $<HTMLOutputElement>('#quality-value').value = (event.target as HTMLInputElement).value; });
 document.querySelectorAll<HTMLInputElement>('input[name="mode"]').forEach(element => element.addEventListener('change', setModeFields));
 filesContainer.addEventListener('click', event => { const target = event.target as HTMLElement; const id = target.dataset.remove; if (!id || processing) return; const image = images.find(item => item.id === id); if (image) URL.revokeObjectURL(image.previewUrl); images = images.filter(item => item.id !== id); converted = converted.filter(item => item.sourceId !== id); refresh(); });
-convertButton.addEventListener('click', async () => { processing = true; converted = []; showNotice(); refresh(); try { const settings = readSettings(); converted = await Promise.all(images.map(async image => { const result = await convertToWebp(image.file, settings); return { sourceId: image.id, name: image.file.name.replace(/\.[^.]+$/, '') + '.webp', relativePath: image.relativePath, ...result }; })); renderResults(resultsContainer, converted, images); resultsSection.classList.remove('hidden'); hasCompletedConversion = true; showNotice(`${converted.length} image${converted.length === 1 ? '' : 's'} converted successfully.`); } catch (error) { showNotice(error instanceof Error ? error.message : 'Conversion failed. Please try again.', true); } finally { processing = false; refresh(); } });
+convertButton.addEventListener('click', async () => { processing = true; converted = []; showNotice(); refresh(); try { const settings = readSettings(); const outputPaths = uniqueWebpPaths(images.map(image => image.relativePath)); converted = await Promise.all(images.map(async (image, index) => { const result = await convertToWebp(image.file, settings); return { sourceId: image.id, name: image.file.name.replace(/\.[^.]+$/, '') + '.webp', relativePath: image.relativePath, outputPath: outputPaths[index], ...result }; })); renderResults(resultsContainer, converted, images); resultsSection.classList.remove('hidden'); hasCompletedConversion = true; showNotice(`${converted.length} image${converted.length === 1 ? '' : 's'} converted successfully.`); } catch (error) { showNotice(error instanceof Error ? error.message : 'Conversion failed. Please try again.', true); } finally { processing = false; refresh(); } });
 resultsContainer.addEventListener('click', event => { const id = (event.target as HTMLElement).dataset.download; const image = converted.find(item => item.sourceId === id); if (image) downloadBlob(image.blob, image.name); });
 function closeArchiveNameEditor(save: boolean): void {
   if (save) archiveName = archiveNameInput.value;
