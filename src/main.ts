@@ -14,14 +14,24 @@ const archiveNameControl = $('#archive-name-control'); const archiveNameButton =
 let images: SourceImage[] = [];
 let converted: ConvertedImage[] = [];
 let processing = false;
+let hasCompletedConversion = false;
 let archiveName = '';
 
 function showNotice(message = '', error = false): void { notice.textContent = message; notice.className = `notice ${message ? (error ? 'error' : 'success') : ''}`; }
 function refresh(): void { renderFiles(filesContainer, images, processing); count.textContent = images.length ? `${images.length} image${images.length === 1 ? '' : 's'} ready` : 'No images added'; convertButton.toggleAttribute('disabled', !images.length || processing); convertButton.textContent = processing ? 'Converting…' : 'Convert all'; }
 function valid(file: File): boolean { return ['image/jpeg', 'image/png'].includes(file.type) || /\.(jpe?g|png)$/i.test(file.name); }
+function clearCompletedBatch(): void {
+  images.forEach(image => URL.revokeObjectURL(image.previewUrl));
+  images = [];
+  converted = [];
+  resultsContainer.replaceChildren();
+  resultsSection.classList.add('hidden');
+  hasCompletedConversion = false;
+}
 async function addFiles(list: FileList | File[]): Promise<void> {
   const accepted = Array.from(list).filter(valid); const rejected = Array.from(list).length - accepted.length;
   if (rejected) showNotice(`${rejected} unsupported file${rejected === 1 ? ' was' : 's were'} skipped. Please use JPG or PNG.`, true);
+  if (accepted.length && hasCompletedConversion) clearCompletedBatch();
   const added: SourceImage[] = [];
   for (const file of accepted) { let url: string | undefined; try { url = URL.createObjectURL(file); const dimensions = await imageDimensions(url); added.push({ id: crypto.randomUUID(), file, previewUrl: url, ...dimensions }); } catch { if (url) URL.revokeObjectURL(url); showNotice(`Could not read ${file.name}.`, true); } }
   images = [...images, ...added]; converted = []; resultsSection.classList.add('hidden'); refresh();
@@ -36,7 +46,7 @@ dropzone.addEventListener('drop', event => { if (event.dataTransfer?.files) void
 $<HTMLInputElement>('#quality').addEventListener('input', event => { $<HTMLOutputElement>('#quality-value').value = (event.target as HTMLInputElement).value; });
 document.querySelectorAll<HTMLInputElement>('input[name="mode"]').forEach(element => element.addEventListener('change', setModeFields));
 filesContainer.addEventListener('click', event => { const target = event.target as HTMLElement; const id = target.dataset.remove; if (!id || processing) return; const image = images.find(item => item.id === id); if (image) URL.revokeObjectURL(image.previewUrl); images = images.filter(item => item.id !== id); converted = converted.filter(item => item.sourceId !== id); refresh(); });
-convertButton.addEventListener('click', async () => { processing = true; converted = []; showNotice(); refresh(); try { const settings = readSettings(); converted = await Promise.all(images.map(async image => { const result = await convertToWebp(image.file, settings); return { sourceId: image.id, name: image.file.name.replace(/\.[^.]+$/, '') + '.webp', ...result }; })); renderResults(resultsContainer, converted, images); resultsSection.classList.remove('hidden'); showNotice(`${converted.length} image${converted.length === 1 ? '' : 's'} converted successfully.`); } catch (error) { showNotice(error instanceof Error ? error.message : 'Conversion failed. Please try again.', true); } finally { processing = false; refresh(); } });
+convertButton.addEventListener('click', async () => { processing = true; converted = []; showNotice(); refresh(); try { const settings = readSettings(); converted = await Promise.all(images.map(async image => { const result = await convertToWebp(image.file, settings); return { sourceId: image.id, name: image.file.name.replace(/\.[^.]+$/, '') + '.webp', ...result }; })); renderResults(resultsContainer, converted, images); resultsSection.classList.remove('hidden'); hasCompletedConversion = true; showNotice(`${converted.length} image${converted.length === 1 ? '' : 's'} converted successfully.`); } catch (error) { showNotice(error instanceof Error ? error.message : 'Conversion failed. Please try again.', true); } finally { processing = false; refresh(); } });
 resultsContainer.addEventListener('click', event => { const id = (event.target as HTMLElement).dataset.download; const image = converted.find(item => item.sourceId === id); if (image) downloadBlob(image.blob, image.name); });
 function closeArchiveNameEditor(save: boolean): void {
   if (save) archiveName = archiveNameInput.value;
